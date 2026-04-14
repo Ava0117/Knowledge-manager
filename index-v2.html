@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识收藏管理系统 V2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --study: #10b981;
+            --entertainment: #ec4899;
+            --health: #f59e0b;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 1.5rem; }
+        h1 span { background: linear-gradient(135deg, var(--primary), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .header-actions { display: flex; gap: 10px; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #4338ca; transform: translateY(-1px); }
+
+        .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid #334155; }
+        .btn-secondary:hover { background: #334155; border-color: var(--primary); }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value { font-size: 2rem; font-weight: 700; }
+        .stat-label { font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px; }
+
+        .stat-card.study { border-left: 4px solid var(--study); }
+        .stat-card.entertainment { border-left: 4px solid var(--entertainment); }
+        .stat-card.health { border-left: 4px solid var(--health); }
+        .stat-card.total { border-left: 4px solid var(--primary); }
+
+        .categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cat-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            background: var(--surface);
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .cat-btn.active { color: white; }
+
+        .cat-btn[data-cat="all"].active { background: var(--primary); }
+        .cat-btn[data-cat="study"].active { background: var(--study); }
+        .cat-btn[data-cat="entertainment"].active { background: var(--entertainment); }
+        .cat-btn[data-cat="health"].active { background: var(--health); }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .search-box input:focus { outline: none; border-color: var(--primary); }
+
+        .tag-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .tag {
+            padding: 6px 14px;
+            background: var(--surface);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag:hover { background: var(--primary); }
+        .tag.active { background: var(--primary); }
+
+        .collections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            word-break: break-word;
+            flex: 1;
+        }
+
+        .card-category {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+
+        .card-category.study { background: rgba(16, 185, 129, 0.2); color: var(--study); }
+        .card-category.entertainment { background: rgba(236, 72, 153, 0.2); color: var(--entertainment); }
+        .card-category.health { background: rgba(245, 158, 11, 0.2); color: var(--health); }
+
+        .card-url {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-url a { color: var(--primary); text-decoration: none; }
+        .card-url a:hover { text-decoration: underline; }
+
+        .card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+
+        .card-tag {
+            padding: 3px 10px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: var(--primary);
+        }
+
+        .card-notes {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid #334155;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .card-actions { display: flex; gap: 8px; }
+
+        .card-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            background: #334155;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .card-btn:hover { background: var(--primary); }
+        .card-btn.delete:hover { background: #ef4444; }
+
+        .empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+            grid-column: 1 / -1;
+        }
+
+        .empty-icon { font-size: 4rem; margin-bottom: 20px; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .modal-header h2 { font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+
+        .modal-body { padding: 24px; }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--background);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea { min-height: 100px; resize: vertical; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .tag-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tag-suggestion {
+            padding: 6px 12px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px dashed var(--primary);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-suggestion:hover { background: var(--primary); }
+
+        .analysis-result {
+            padding: 16px;
+            background: var(--background);
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .analysis-result.show { display: block; }
+
+        .analysis-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .analysis-item:last-child { border-bottom: none; }
+
+        .analysis-label { color: var(--text-secondary); font-size: 0.9rem; }
+        .analysis-value { font-weight: 500; font-size: 0.9rem; }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px 24px;
+            border-top: 1px solid #334155;
+        }
+
+        .btn-cancel { background: #334155; color: var(--text); }
+        .btn-cancel:hover { background: #475569; }
+
+        .summary-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--background);
+            border-radius: 12px;
+        }
+
+        .summary-section h4 { margin-bottom: 12px; font-size: 1rem; }
+
+        .summary-text {
+            line-height: 1.8;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .ai-suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .ai-suggestion {
+            padding: 6px 14px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--study);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-suggestion:hover { background: var(--study); color: white; }
+
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
+
+        .tab {
+            padding: 12px 24px;
+            background: var(--background);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .tab:hover { background: #334155; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .merge-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .merge-section h4 { margin-bottom: 12px; font-size: 1rem; }
+        .merge-section select { width: 100%; min-height: 200px; padding: 12px; background: var(--background); border: 1px solid #334155; border-radius: 10px; color: var(--text); }
+
+        .btn-merge { background: var(--entertainment); color: white; }
+        .btn-merge:hover { background: #db2777; }
+
+        .analyzing {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #334155;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .url-input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .url-input-group input { flex: 1; }
+
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .merge-layout { grid-template-columns: 1fr; }
+            .collections-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 知识收藏管理系统 <span>V2 增强版</span></h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="openMergeModal()">🔗 合并分类</button>
+                <button class="btn btn-secondary" onclick="openSummaryModal()">📝 内容总结</button>
+                <button class="btn btn-primary" onclick="showAddForm()">+ 添加收藏</button>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card total">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">总收藏数</div>
+            </div>
+            <div class="stat-card study">
+                <div class="stat-value" id="studyCount">0</div>
+                <div class="stat-label">📚 学习</div>
+            </div>
+            <div class="stat-card entertainment">
+                <div class="stat-value" id="entertainmentCount">0</div>
+                <div class="stat-label">🎬 娱乐</div>
+            </div>
+            <div class="stat-card health">
+                <div class="stat-value" id="healthCount">0</div>
+                <div class="stat-label">💪 健康</div>
+            </div>
+        </div>
+
+        <div class="categories">
+            <button class="cat-btn active" data-cat="all" onclick="filterCategory('all')">全部</button>
+            <button class="cat-btn" data-cat="study" onclick="filterCategory('study')">📚 学习</button>
+            <button class="cat-btn" data-cat="entertainment" onclick="filterCategory('entertainment')">🎬 娱乐</button>
+            <button class="cat-btn" data-cat="health" onclick="filterCategory('health')">💪 健康</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 搜索收藏标题、链接或标签..." oninput="renderCollections()">
+        </div>
+
+        <div class="tag-filter" id="tagFilter"></div>
+
+        <div class="collections-grid" id="collectionsGrid">
+            <div class="empty">
+                <div class="empty-icon">📭</div>
+                <p>暂无收藏内容</p>
+                <p style="margin-top: 10px; font-size: 0.9rem;">点击右上角「+ 添加收藏」开始</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="addModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><span id="modalIcon">➕</span> <span id="modalTitle">添加新收藏</span></h2>
+                <button class="btn btn-cancel" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>链接地址</label>
+                    <input type="url" id="formUrl" placeholder="https://..." oninput="analyzeUrl()">
+                </div>
+                <div class="form-group">
+                    <label>标题</label>
+                    <input type="text" id="formTitle" placeholder="收藏标题（自动提取或手动输入）">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>平台</label>
+                        <select id="formPlatform">
+                            <option value="douyin">🎵 抖音</option>
+                            <option value="douban">🎬 豆瓣</option>
+                            <option value="weibo">📱 微博</option>
+                            <option value="other">🔗 其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>分类</label>
+                        <select id="formCategory" onchange="updateSubcategories()">
+                            <option value="study">📚 学习</option>
+                            <option value="entertainment">🎬 娱乐</option>
+                            <option value="health">💪 健康</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>子分类</label>
+                    <select id="formSubcategory">
+                        <option value="">请先选择分类</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>标签（逗号分隔）</label>
+                    <input type="text" id="formTags" placeholder="如：编程, Python, 教程">
+                    <div class="tag-suggestions" id="tagSuggestions"></div>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="formNotes" placeholder="添加备注说明..."></textarea>
+                </div>
+                <div class="analysis-result" id="analysisResult">
+                    <h4 style="margin-bottom: 12px;">🤖 AI智能分析结果</h4>
+                    <div id="analysisContent"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveCollection()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="summaryModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📝 内容总结与关联分析</h2>
+                <button class="btn btn-cancel" onclick="closeSummaryModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-container">
+                    <button class="tab active" onclick="switchSummaryTab('paste', this)">粘贴内容总结</button>
+                    <button class="tab" onclick="switchSummaryTab('link', this)">🔗 链接内容分析</button>
+                    <button class="tab" onclick="switchSummaryTab('selected', this)">总结选中收藏</button>
+                </div>
+
+                <div id="summaryPasteTab">
+                    <textarea id="summaryInput" placeholder="粘贴文章内容或笔记，AI会自动总结要点..." style="min-height: 150px; width: 100%; padding: 16px; background: var(--background); border: 1px solid #334155; border-radius: 10px; color: var(--text); font-size: 1rem; font-family: inherit; resize: vertical;"></textarea>
+                    <button class="btn btn-primary" onclick="generateSummary()" style="width: 100%; margin-top: 15px;">🤖 生成总结</button>
+
+                    <div id="summaryResult" class="summary-section" style="display: none;">
+                        <h4>📋 智能总结</h4>
+                        <div id="summaryContent" class="summary-text"></div>
+                        <h4 style="margin-top: 15px;">💡 建议标签</h4>
+                        <div class="ai-suggestions" id="summaryTags"></div>
+                        <h4 style="margin-top: 15px;">📁 建议分类</h4>
+                        <div id="summaryCategory"></div>
+                        <button class="btn btn-primary" onclick="createFromSummary()" style="width: 100%; margin-top: 15px;">+ 创建收藏</button>
+                    </div>
+                </div>
+
+                <div id="summaryLinkTab" style="display: none;">
+                    <div style="background: var(--background); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--primary);">
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">💡 使用说明</h4>
+                        <ol style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.8; padding-left: 20px;">
+                            <li>在下方输入链接地址，AI会自动分析内容类型和建议分类</li>
+                            <li>支持抖音、豆瓣、微博、B站、小红书等平台</li>
+                            <li>点击「创建为收藏」保存分析结果</li>
+                        </ol>
+                    </div>
+                    <div class="url-input-group">
+                        <input type="url" id="linkAnalysisUrl" placeholder="粘贴要分析的链接地址，如：https://douyin.com/...">
+                        <button class="btn btn-primary" onclick="analyzeLinkContent()">🔍 分析</button>
+                    </div>
+                    <div id="linkAnalyzingIndicator" class="analyzing" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>正在分析链接内容...</span>
+                    </div>
+                    <div id="linkAnalysisResult" class="analysis-result" style="display: none;"></div>
+                    <div id="linkManualExtract" style="margin-top: 15px; display: none;">
+                        <button class="btn btn-secondary" onclick="switchToPasteTab()" style="width: 100%;">📝 手动粘贴内容（更准确）</button>
+                    </div>
+                    <div id="linkToCollection" style="margin-top: 15px; display: none;">
+                        <button class="btn btn-primary" onclick="createCollectionFromLinkAnalysis()" style="width: 100%;">+ 创建为收藏</button>
+                    </div>
+                </div>
+
+                <div id="summarySelectedTab" style="display: none;">
+                    <p style="color: var(--text-secondary); margin-bottom: 15px;">选择要总结的收藏（按住Ctrl多选）</p>
+                    <select id="summarySelect" multiple style="min-height: 150px; width: 100%; padding: 12px; background: var(--background); border: 1px solid #334155; border-radius: 10px; color: var(--text);"></select>
+                    <button class="btn btn-primary" onclick="summarizeSelected()" style="width: 100%; margin-top: 15px;">🤖 总结所选内容</button>
+                    <div id="selectedSummaryResult" class="summary-section" style="display: none;">
+                        <div id="selectedSummaryContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mergeModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🔗 合并分类/标签</h2>
+                <button class="btn btn-cancel" onclick="closeMergeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-container">
+                    <button class="tab active" onclick="switchMergeTab('tags', this)">合并标签</button>
+                    <button class="tab" onclick="switchMergeTab('subcategories', this)">合并子分类</button>
+                </div>
+
+                <div id="mergeTagsTab">
+                    <div class="merge-layout">
+                        <div class="merge-section">
+                            <h4>选择要合并的标签</h4>
+                            <select id="mergeSourceTags" multiple></select>
+                        </div>
+                        <div class="merge-section">
+                            <h4>目标标签</h4>
+                            <select id="mergeTargetTags"></select>
+                        </div>
+                    </div>
+                    <button class="btn btn-merge" onclick="performMergeTags()" style="width: 100%; margin-top: 20px;">🔀 执行合并</button>
+                </div>
+
+                <div id="mergeSubcategoriesTab" style="display: none;">
+                    <div class="merge-layout">
+                        <div class="merge-section">
+                            <h4>选择要合并的子分类</h4>
+                            <select id="mergeSourceSubcats" multiple></select>
+                        </div>
+                        <div class="merge-section">
+                            <h4>目标子分类</h4>
+                            <select id="mergeTargetSubcats"></select>
+                        </div>
+                    </div>
+                    <button class="btn btn-merge" onclick="performMergeSubcategories()" style="width: 100%; margin-top: 20px;">🔀 执行合并</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let collections = JSON.parse(localStorage.getItem('collections_v4') || '[]');
+        let currentFilter = 'all';
+        let currentTagFilter = '';
+        let editingId = null;
+        let currentMergeTab = 'tags';
+        let linkAnalysisData = null;
+
+        const subcategories = {
+            study: ['知识干货', '编程开发', '设计创意', '商业财经', '科学技术', '语言学习', '职场技能', '学习方法', '知识储备'],
+            entertainment: ['美食制作', '旅行分享', '时尚美妆', '宠物天地', '舞蹈欣赏', '音乐欣赏', '搞笑内容', '明星娱乐', '综艺娱乐', '视频娱乐'],
+            health: ['健身运动', '营养饮食', '心理健康', '养生保健', '睡眠休息']
+        };
+
+        const categoryKeywords = {
+            study: {
+                keywords: ['learn', 'course', 'tutorial', 'education', 'coding', 'programming', '开发', '编程', 'design', '教程', '课程', 'python', 'javascript', 'react', 'vue', 'ai', 'machine', 'data', 'science', 'business', 'marketing', 'language', '英语', '学习', '知识', '技术', '科学', '计算机', '软件', '产品', '商业', '财经', '投资', '面试', '职场', '技能', '方法论', '思维', '逻辑', '分析', '策略', '经验', '分享', '干货', '科普'],
+                subcategoryMap: {
+                    '编程': '编程开发', 'programming': '编程开发', 'coding': '编程开发', 'python': '编程开发', 'javascript': '编程开发', 'react': '编程开发', 'vue': '编程开发', '开发': '编程开发', 'java': '编程开发',
+                    'design': '设计创意', '设计': '设计创意', 'ui': '设计创意', 'ux': '设计创意', 'ps': '设计创意', 'figma': '设计创意',
+                    '商业': '商业财经', 'business': '商业财经', '营销': '商业财经', '财经': '商业财经', '投资': '商业财经', 'marketing': '商业财经', '创业': '商业财经',
+                    '科学': '科学技术', 'science': '科学技术', '技术': '科学技术', 'ai': '科学技术', 'machine': '科学技术', 'data': '科学技术',
+                    '语言': '语言学习', 'language': '语言学习', '英语': '语言学习', 'english': '语言学习', '日语': '语言学习', '韩语': '语言学习',
+                    '面试': '职场技能', '职场': '职场技能', '技能': '职场技能', '效率': '职场技能', '办公': '职场技能',
+                    '思维': '学习方法', '方法': '学习方法', '学习': '学习方法', '记忆': '学习方法', '阅读': '学习方法',
+                    '科普': '知识储备', '知识': '知识储备', '常识': '知识储备', '冷知识': '知识储备'
+                }
+            },
+            entertainment: {
+                keywords: ['video', 'movie', 'film', 'music', 'song', 'game', 'gaming', 'comedy', 'funny', 'entertainment', 'tv', 'series', '视频', '电影', '音乐', '游戏', '综艺', '搞笑', '娱乐', '追剧', '剧集', '演唱会', '明星', '追星', 'CP', '八卦', '爆料', '综艺', '真人秀', '脱口秀', '小品', '相声'],
+                subcategoryMap: {
+                    'video': '视频娱乐', '视频': '视频娱乐', '电影': '视频娱乐', 'movie': '视频娱乐', 'film': '视频娱乐', '综艺': '视频娱乐', 'series': '视频娱乐', '剧集': '视频娱乐', '追剧': '视频娱乐', '电视剧': '视频娱乐',
+                    'music': '音乐欣赏', '音乐': '音乐欣赏', 'song': '音乐欣赏', '演唱会': '音乐欣赏', '歌': '音乐欣赏', '歌曲': '音乐欣赏', '歌手': '音乐欣赏',
+                    'game': '游戏', '游戏': '游戏', 'gaming': '游戏', '电竞': '游戏', '手游': '游戏', '端游': '游戏',
+                    '搞笑': '搞笑内容', '幽默': '搞笑内容', '段子': '搞笑内容', '小品': '搞笑内容', '相声': '搞笑内容', '脱口秀': '搞笑内容',
+                    '明星': '明星娱乐', '追星': '明星娱乐', '偶像': '明星娱乐', '爱豆': '明星娱乐', '八卦': '明星娱乐', '爆料': '明星娱乐',
+                    '美食': '美食制作', '做菜': '美食制作', '烹饪': '美食制作', '食谱': '美食制作'
+                }
+            },
+            health: {
+                keywords: ['health', 'fitness', 'workout', 'gym', 'yoga', 'meditation', 'diet', 'nutrition', 'sleep', 'mental', 'wellness', '健身', '健康', '运动', '瑜伽', '冥想', '饮食', '营养', '睡眠', '心理', '减肥', '增肌', '跑步', '拉伸', '养生', '中医', '减肥', '塑形', '体态', '康复'],
+                subcategoryMap: {
+                    '健身': '健身运动', 'fitness': '健身运动', 'workout': '健身运动', 'gym': '健身运动', '运动': '健身运动', '跑步': '健身运动', '增肌': '健身运动', '减肥': '健身运动', '塑形': '健身运动', '体态': '健身运动', '拉伸': '健身运动', '康复': '健身运动',
+                    '饮食': '营养饮食', 'nutrition': '营养饮食', '营养': '营养饮食', 'diet': '营养饮食', '美食': '营养饮食', '减脂': '营养饮食', '增肌餐': '营养饮食', '食谱': '营养饮食',
+                    '心理': '心理健康', 'mental': '心理健康', '冥想': '心理健康', 'meditation': '心理健康', '瑜伽': '心理健康', 'yoga': '心理健康', '睡眠': '心理健康', '解压': '心理健康',
+                    '养生': '养生保健', '中医': '养生保健', '健康': '养生保健', '保健': '养生保健', '调理': '养生保健'
+                }
+            }
+        };
+
+        function detectPlatform(url) {
+            const lowerUrl = url.toLowerCase();
+            if (lowerUrl.includes('douyin.com') || lowerUrl.includes('iesdouyin')) return 'douyin';
+            if (lowerUrl.includes('douban.com')) return 'douban';
+            if (lowerUrl.includes('weibo.com') || lowerUrl.includes('m.weibo.cn')) return 'weibo';
+            return 'other';
+        }
+
+        function performAIAnalysis(url) {
+            const platform = detectPlatform(url);
+            const platformNames = { douyin: '🎵 抖音', douban: '🎬 豆瓣', weibo: '📱 微博', other: '🔗 其他' };
+
+            let title = '';
+            let videoId = '';
+            let contentType = '🔗 链接';
+            let topic = '';
+
+            try {
+                const urlObj = new URL(url);
+                const pathParts = urlObj.pathname.split('/').filter(Boolean);
+                if (pathParts.length > 0) {
+                    const lastPart = pathParts[pathParts.length - 1].replace(/[^a-zA-Z\u4e00-\u9fa50-9]/g, '');
+                    if (lastPart.length > 1 && lastPart.length < 50) title = lastPart;
+                }
+                const videoIdMatch = url.match(/video\/(\d+)/) || url.match(/(\d{19})/) || url.match(/aweme\/(\w+)/);
+                if (videoIdMatch) videoId = videoIdMatch[1];
+            } catch(e) {}
+
+            if (platform === 'douyin') {
+                const douyinPatterns = [
+                    { regex: /【([^】]+)】/, extract: m => m[1] },
+                    { regex: /「([^」]+)」/, extract: m => m[1] },
+                    { regex: /#(\w+)#/, extract: m => m[1] }
+                ];
+                for (const p of douyinPatterns) {
+                    const match = url.match(p.regex);
+                    if (match && match[1] && match[1].length > 2 && match[1].length < 50) {
+                        title = match[1];
+                        break;
+                    }
+                }
+                if (url.includes('/video/')) contentType = '🎬 抖音视频';
+                else if (url.includes('/live/')) contentType = '📺 抖音直播';
+                else contentType = '📝 抖音内容';
+
+                const douyinTopics = ['美食', '旅游', '时尚', '美妆', '健身', '搞笑', '舞蹈', '音乐', '影视', '游戏', '知识', '技能', '教程', '评测'];
+                for (const t of douyinTopics) {
+                    if (title.includes(t) || url.includes(t)) { topic = t; break; }
+                }
+            } else if (platform === 'douban') {
+                if (url.includes('/movie/') || url.includes('/subject/')) contentType = '🎬 豆瓣电影/剧集';
+                else if (url.includes('/group/')) contentType = '👥 豆瓣小组';
+                else if (url.includes('/note/')) contentType = '📔 豆瓣日记';
+                else contentType = '📌 豆瓣内容';
+            } else if (platform === 'weibo') {
+                if (url.includes('/video/')) contentType = '🎬 微博视频';
+                else if (url.includes('/topic/')) contentType = '#️⃣ 微博话题';
+                else contentType = '📌 微博内容';
+            } else {
+                if (url.includes('bilibili')) contentType = '🎬 B站视频';
+                else if (url.includes('xiaohongshu') || url.includes('redbook')) contentType = '📕 小红书';
+                else if (url.includes('zhihu')) contentType = '💬 知乎';
+                else if (url.includes('video')) contentType = '🎬 视频内容';
+                else if (url.includes('article')) contentType = '📝 文章';
+            }
+
+            const urlText = (url + ' ' + title + ' ' + topic).toLowerCase();
+            let categoryScores = { study: 0, entertainment: 0, health: 0 };
+            let allKeywords = [];
+
+            const keywordWeights = {
+                study: { '编程': 5, '教程': 4, '学习': 4, '知识': 4, '课程': 4, 'python': 5, 'javascript': 5, 'ai': 4, '科学': 3, '技术': 3, '面试': 4, '职场': 4, '方法': 3, '干货': 4, '科普': 3 },
+                entertainment: { '美食': 4, '电影': 4, '音乐': 4, '综艺': 5, '搞笑': 4, '游戏': 4, '追星': 5, '明星': 4, '电视剧': 4, '旅行': 4, '时尚': 4, '美妆': 4 },
+                health: { '健身': 5, '减肥': 5, '健康': 4, '运动': 4, '瑜伽': 4, '冥想': 4, '饮食': 4, '营养': 4, '睡眠': 4, '心理': 4, '养生': 4 }
+            };
+
+            for (const [category, kws] of Object.entries(keywordWeights)) {
+                for (const [kw, weight] of Object.entries(kws)) {
+                    if (urlText.includes(kw)) {
+                        categoryScores[category] += weight;
+                        if (!allKeywords.includes(kw)) allKeywords.push(kw);
+                    }
+                }
+            }
+
+            const maxScore = Math.max(categoryScores.study, categoryScores.entertainment, categoryScores.health);
+            const category = maxScore === 0 ? 'study' : categoryScores.study === maxScore ? 'study' : categoryScores.entertainment === maxScore ? 'entertainment' : 'health';
+
+            const categoryNames = { study: '📚 学习', entertainment: '🎬 娱乐', health: '💪 健康' };
+            const categoryColors = { study: '#10b981', entertainment: '#ec4899', health: '#f59e0b' };
+
+            let subcategory = '';
+            const categoryData = categoryKeywords[category];
+            for (const [kw, sub] of Object.entries(categoryData.subcategoryMap)) {
+                if (urlText.includes(kw.toLowerCase())) { subcategory = sub; break; }
+            }
+            if (!subcategory) subcategory = subcategories[category][0];
+
+            if (!title) title = topic ? `${topic}相关内容` : `${platformNames[platform]}收藏内容`;
+
+            const categoryBaseTags = { study: ['学习', '知识', '成长', '干货'], entertainment: ['娱乐', '休闲', '精彩', '推荐'], health: ['健康', '生活', '养生', '身心'] };
+            let tags = [...new Set([...categoryBaseTags[category], ...allKeywords.slice(0, 4)])].slice(0, 8);
+            if (topic) tags.unshift(topic);
+
+            let description = `${platformNames[platform]}${contentType}`;
+            if (topic) description += `，主题：${topic}`;
+            if (allKeywords.length > 0) description += `，关键词：${allKeywords.slice(0, 3).join('、')}`;
+
+            return { platform, platformName: platformNames[platform], category, categoryName: categoryNames[category], categoryColor: categoryColors[category], subcategory, title, tags, suggestedTags: [...new Set([...tags, ...allKeywords])].slice(0, 12), description, detectedType: contentType, keywords: allKeywords, videoId, topic };
+        }
+
+        function saveToStorage() { localStorage.setItem('collections_v4', JSON.stringify(collections)); }
+        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
+        function renderCollections() {
+            const grid = document.getElementById('collectionsGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = collections.filter(c => {
+                const matchCat = currentFilter === 'all' || c.category === currentFilter;
+                const matchTag = !currentTagFilter || c.tags.includes(currentTagFilter);
+                const matchSearch = !search || c.title.toLowerCase().includes(search) || c.url.toLowerCase().includes(search) || c.tags.some(t => t.toLowerCase().includes(search)) || (c.notes && c.notes.toLowerCase().includes(search));
+                return matchCat && matchTag && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><p>暂无收藏内容</p><p style="margin-top: 10px; font-size: 0.9rem;">${search ? '尝试其他搜索词' : '点击右上角「+ 添加收藏」开始'}</p></div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(c => `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">${escapeHtml(c.title)}</div>
+                        <span class="card-category ${c.category}">${c.category === 'study' ? '📚' : c.category === 'entertainment' ? '🎬' : '💪'} ${c.subcategory || ''}</span>
+                    </div>
+                    <div class="card-url">${getPlatformIcon(c.platform)} <a href="${escapeHtml(c.url)}" target="_blank" rel="noopener">${escapeHtml(c.url.substring(0, 60))}${c.url.length > 60 ? '...' : ''}</a></div>
+                    <div class="card-tags">${c.tags.map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join('')}</div>
+                    ${c.notes ? `<div class="card-notes">${escapeHtml(c.notes)}</div>` : ''}
+                    <div class="card-footer">
+                        <span>${getPlatformIcon(c.platform)} ${formatDate(c.createdAt)}</span>
+                        <div class="card-actions">
+                            <button class="card-btn" onclick="editCollection('${c.id}')">✏️</button>
+                            <button class="card-btn delete" onclick="deleteCollection('${c.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            renderTagFilter();
+        }
+
+        function renderTagFilter() {
+            const allTags = [...new Set(collections.flatMap(c => c.tags))];
+            const container = document.getElementById('tagFilter');
+            container.innerHTML = `<span class="tag ${!currentTagFilter ? 'active' : ''}" onclick="filterByTag('')">全部标签</span>${allTags.map(t => `<span class="tag ${currentTagFilter === t ? 'active' : ''}" onclick="filterByTag('${escapeHtml(t)}')">${escapeHtml(t)}</span>`).join('')}`;
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = collections.length;
+            document.getElementById('studyCount').textContent = collections.filter(c => c.category === 'study').length;
+            document.getElementById('entertainmentCount').textContent = collections.filter(c => c.category === 'entertainment').length;
+            document.getElementById('healthCount').textContent = collections.filter(c => c.category === 'health').length;
+        }
+
+        function filterCategory(cat) { currentFilter = cat; document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.cat === cat)); renderCollections(); }
+        function filterByTag(tag) { currentTagFilter = tag; renderCollections(); }
+
+        function showAddForm() {
+            editingId = null;
+            document.getElementById('modalIcon').textContent = '➕';
+            document.getElementById('modalTitle').textContent = '添加新收藏';
+            document.getElementById('formUrl').value = '';
+            document.getElementById('formTitle').value = '';
+            document.getElementById('formPlatform').value = 'douyin';
+            document.getElementById('formCategory').value = 'study';
+            document.getElementById('formSubcategory').value = '';
+            document.getElementById('formTags').value = '';
+            document.getElementById('formNotes').value = '';
+            document.getElementById('analysisResult').classList.remove('show');
+            document.getElementById('tagSuggestions').innerHTML = '';
+            updateSubcategories();
+            document.getElementById('addModal').classList.add('show');
+        }
+
+        function closeModal() { document.getElementById('addModal').classList.remove('show'); }
+
+        function editCollection(id) {
+            const c = collections.find(x => x.id === id);
+            if (!c) return;
+            editingId = id;
+            document.getElementById('modalIcon').textContent = '✏️';
+            document.getElementById('modalTitle').textContent = '编辑收藏';
+            document.getElementById('formUrl').value = c.url;
+            document.getElementById('formTitle').value = c.title;
+            document.getElementById('formPlatform').value = c.platform;
+            document.getElementById('formCategory').value = c.category;
+            document.getElementById('formTags').value = c.tags.join(', ');
+            document.getElementById('formNotes').value = c.notes || '';
+            updateSubcategories();
+            setTimeout(() => { document.getElementById('formSubcategory').value = c.subcategory || ''; }, 50);
+            document.getElementById('addModal').classList.add('show');
+        }
+
+        function deleteCollection(id) { if (!confirm('确定要删除这个收藏吗？')) return; collections = collections.filter(c => c.id !== id); saveToStorage(); renderCollections(); updateStats(); }
+
+        function saveCollection() {
+            const url = document.getElementById('formUrl').value.trim();
+            const title = document.getElementById('formTitle').value.trim() || url;
+            const platform = document.getElementById('formPlatform').value;
+            const category = document.getElementById('formCategory').value;
+            const subcategory = document.getElementById('formSubcategory').value;
+            const tags = document.getElementById('formTags').value.split(',').map(t => t.trim()).filter(t => t);
+            const notes = document.getElementById('formNotes').value.trim();
+            if (!url) { alert('请输入链接地址'); return; }
+
+            const collection = { id: editingId || generateId(), url, title, platform, category, subcategory, tags, notes, createdAt: editingId ? collections.find(c => c.id === editingId)?.createdAt : Date.now(), updatedAt: Date.now() };
+            if (editingId) { const idx = collections.findIndex(c => c.id === editingId); if (idx !== -1) collections[idx] = collection; }
+            else { collections.unshift(collection); }
+            saveToStorage();
+            closeModal();
+            renderCollections();
+            updateStats();
+        }
+
+        function analyzeUrl() {
+            const url = document.getElementById('formUrl').value.trim();
+            if (!url || !url.startsWith('http')) { document.getElementById('analysisResult').classList.remove('show'); return; }
+
+            const result = performAIAnalysis(url);
+            document.getElementById('formTitle').value = result.title;
+            document.getElementById('formCategory').value = result.category;
+            updateSubcategories();
+            setTimeout(() => { document.getElementById('formSubcategory').value = result.subcategory; }, 50);
+            document.getElementById('formTags').value = result.tags.join(', ');
+            renderTagSuggestions(result.suggestedTags);
+
+            document.getElementById('analysisContent').innerHTML = `
+                <div class="analysis-item"><span class="analysis-label">📌 平台</span><span class="analysis-value">${result.platformName}</span></div>
+                <div class="analysis-item"><span class="analysis-label">🏷️ 内容类型</span><span class="analysis-value">${result.detectedType}</span></div>
+                <div class="analysis-item"><span class="analysis-label">📂 分类</span><span class="analysis-value" style="color: ${result.categoryColor};">${result.categoryName} → ${result.subcategory}</span></div>
+                ${result.topic ? `<div class="analysis-item"><span class="analysis-label">🎯 主题</span><span class="analysis-value">${result.topic}</span></div>` : ''}
+                <div class="analysis-item"><span class="analysis-label">🔑 关键词</span><span class="analysis-value">${result.keywords.slice(0, 6).join(', ') || '无特定关键词'}</span></div>
+                <div class="analysis-item"><span class="analysis-label">📝 提取标题</span><span class="analysis-value">${result.title}</span></div>
+            `;
+            document.getElementById('analysisResult').classList.add('show');
+        }
+
+        function updateSubcategories() {
+            const cat = document.getElementById('formCategory').value;
+            const select = document.getElementById('formSubcategory');
+            select.innerHTML = subcategories[cat].map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
+        function renderTagSuggestions(tags) { document.getElementById('tagSuggestions').innerHTML = tags.slice(0, 8).map(t => `<span class="tag-suggestion" onclick="addTag('${t}')">+ ${t}</span>`).join(''); }
+        function addTag(tag) { const input = document.getElementById('formTags'); const current = input.value.split(',').map(t => t.trim()).filter(t => t); if (!current.includes(tag)) { current.push(tag); input.value = current.join(', '); } }
+
+        function openMergeModal() { currentMergeTab = 'tags'; document.querySelectorAll('#mergeModal .tab').forEach(t => t.classList.remove('active')); document.querySelector('#mergeModal .tab').classList.add('active'); document.getElementById('mergeTagsTab').style.display = 'block'; document.getElementById('mergeSubcategoriesTab').style.display = 'none'; populateMergeSelects(); document.getElementById('mergeModal').classList.add('show'); }
+        function closeMergeModal() { document.getElementById('mergeModal').classList.remove('show'); }
+        function switchMergeTab(tab, btn) { currentMergeTab = tab; document.querySelectorAll('#mergeModal .tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); document.getElementById('mergeTagsTab').style.display = tab === 'tags' ? 'block' : 'none'; document.getElementById('mergeSubcategoriesTab').style.display = tab === 'subcategories' ? 'block' : 'none'; }
+
+        function populateMergeSelects() {
+            const allTags = [...new Set(collections.flatMap(c => c.tags))];
+            const allSubcats = [...new Set(collections.map(c => c.subcategory).filter(Boolean))];
+            document.getElementById('mergeSourceTags').innerHTML = allTags.map(t => `<option value="${t}">${t} (${collections.filter(c => c.tags.includes(t)).length})</option>`).join('');
+            document.getElementById('mergeTargetTags').innerHTML = allTags.map(t => `<option value="${t}">${t}</option>`).join('');
+            document.getElementById('mergeSourceSubcats').innerHTML = allSubcats.map(s => `<option value="${s}">${s} (${collections.filter(c => c.subcategory === s).length})</option>`).join('');
+            document.getElementById('mergeTargetSubcats').innerHTML = allSubcats.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
+        function performMergeTags() {
+            const source = Array.from(document.getElementById('mergeSourceTags').selectedOptions).map(o => o.value);
+            const target = document.getElementById('mergeTargetTags').value;
+            if (source.length === 0) { alert('请选择要合并的标签'); return; }
+            if (!target) { alert('请选择目标标签'); return; }
+            collections.forEach(c => { source.forEach(s => { const idx = c.tags.indexOf(s); if (idx !== -1 && s !== target) { c.tags.splice(idx, 1); if (!c.tags.includes(target)) c.tags.push(target); } }); });
+            saveToStorage();
+            closeMergeModal();
+            renderCollections();
+            alert(`已合并 ${source.length} 个标签到「${target}」`);
+        }
+
+        function performMergeSubcategories() {
+            const source = Array.from(document.getElementById('mergeSourceSubcats').selectedOptions).map(o => o.value);
+            const target = document.getElementById('mergeTargetSubcats').value;
+            if (source.length === 0) { alert('请选择要合并的子分类'); return; }
+            if (!target) { alert('请选择目标子分类'); return; }
+            collections.forEach(c => { if (source.includes(c.subcategory)) c.subcategory = target; });
+            saveToStorage();
+            closeMergeModal();
+            renderCollections();
+            alert(`已合并 ${source.length} 个子分类到「${target}」`);
+        }
+
+        function openSummaryModal() {
+            document.getElementById('summaryModal').classList.add('show');
+            document.getElementById('summaryInput').value = '';
+            document.getElementById('summaryResult').style.display = 'none';
+            document.getElementById('linkAnalysisResult').style.display = 'none';
+            document.getElementById('linkManualExtract').style.display = 'none';
+            document.getElementById('linkToCollection').style.display = 'none';
+            document.getElementById('selectedSummaryResult').style.display = 'none';
+            const select = document.getElementById('summarySelect');
+            select.innerHTML = collections.map(c => `<option value="${c.id}">${c.title || c.url}</option>`).join('');
+            switchSummaryTab('paste', document.querySelector('#summaryModal .tab'));
+        }
+
+        function closeSummaryModal() { document.getElementById('summaryModal').classList.remove('show'); }
+        function switchSummaryTab(tab, btn) { document.querySelectorAll('#summaryModal .tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); document.getElementById('summaryPasteTab').style.display = tab === 'paste' ? 'block' : 'none'; document.getElementById('summaryLinkTab').style.display = tab === 'link' ? 'block' : 'none'; document.getElementById('summarySelectedTab').style.display = tab === 'selected' ? 'block' : 'none'; }
+        function switchToPasteTab() { document.querySelectorAll('#summaryModal .tab')[0].classList.add('active'); document.querySelectorAll('#summaryModal .tab')[1].classList.remove('active'); document.getElementById('summaryPasteTab').style.display = 'block'; document.getElementById('summaryLinkTab').style.display = 'none'; }
+
+        function analyzeLinkContent() {
+            const url = document.getElementById('linkAnalysisUrl').value.trim();
+            if (!url) { alert('请输入链接地址'); return; }
+
+            const analyzingDiv = document.getElementById('linkAnalyzingIndicator');
+            const resultDiv = document.getElementById('linkAnalysisResult');
+            const manualDiv = document.getElementById('linkManualExtract');
+            const createDiv = document.getElementById('linkToCollection');
+
+            analyzingDiv.style.display = 'flex';
+            resultDiv.style.display = 'none';
+            manualDiv.style.display = 'none';
+            createDiv.style.display = 'none';
+
+            setTimeout(() => {
+                const analysis = performAIAnalysis(url);
+                linkAnalysisData = { url, title: analysis.title, platform: analysis.platform, category: analysis.category, subcategory: analysis.subcategory, tags: analysis.tags, description: analysis.description, topic: analysis.topic, categoryColor: analysis.categoryColor };
+
+                resultDiv.innerHTML = `
+                    <div class="analysis-item"><span class="analysis-label">📌 平台</span><span class="analysis-value">${analysis.platformName}</span></div>
+                    <div class="analysis-item"><span class="analysis-label">🏷️ 内容类型</span><span class="analysis-value">${analysis.detectedType}</span></div>
+                    <div class="analysis-item"><span class="analysis-label">📂 建议分类</span><span class="analysis-value" style="color: ${analysis.categoryColor};">${analysis.categoryName} → ${analysis.subcategory}</span></div>
+                    ${analysis.topic ? `<div class="analysis-item"><span class="analysis-label">🎯 主题</span><span class="analysis-value">${analysis.topic}</span></div>` : ''}
+                    <div class="analysis-item"><span class="analysis-label">🔑 识别关键词</span><span class="analysis-value">${analysis.keywords.slice(0, 6).join(', ') || '无特定关键词'}</span></div>
+                    <div class="analysis-item"><span class="analysis-label">📝 提取标题</span><span class="analysis-value">${analysis.title}</span></div>
+                    <div class="analysis-item"><span class="analysis-label">📋 描述</span><span class="analysis-value" style="font-size: 0.85rem;">${analysis.description}</span></div>
+                `;
+
+                analyzingDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+                manualDiv.style.display = 'block';
+                createDiv.style.display = 'block';
+            }, 800);
+        }
+
+        function createCollectionFromLinkAnalysis() {
+            if (!linkAnalysisData) { alert('请先分析链接'); return; }
+            closeSummaryModal();
+            showAddForm();
+            document.getElementById('formUrl').value = linkAnalysisData.url;
+            document.getElementById('formTitle').value = linkAnalysisData.title;
+            document.getElementById('formPlatform').value = linkAnalysisData.platform;
+            document.getElementById('formCategory').value = linkAnalysisData.category;
+            document.getElementById('formSubcategory').value = linkAnalysisData.subcategory;
+            document.getElementById('formTags').value = linkAnalysisData.tags.join(',');
+            document.getElementById('formNotes').value = linkAnalysisData.description;
+            renderTagSuggestions(linkAnalysisData.tags);
+            updateSubcategories();
+            setTimeout(() => { document.getElementById('formSubcategory').value = linkAnalysisData.subcategory; }, 50);
+            linkAnalysisData = null;
+        }
+
+        function generateSummary() {
+            const text = document.getElementById('summaryInput').value.trim();
+            if (!text) { alert('请输入要总结的内容'); return; }
+
+            const sentences = text.split(/[.!?。！？\n]+/).filter(s => s.trim().length > 5);
+            const charCount = text.replace(/\s/g, '').length;
+            const estimatedReadTime = Math.max(1, Math.ceil(charCount / 400));
+            const paragraphCount = text.split(/\n+/).filter(p => p.trim()).length;
+            const keywords = extractKeywordsFromText(text);
+            const category = determineCategoryFromKeywords(keywords);
+            const contentType = detectContentTypeDetailed(text);
+            const coreMessage = extractCoreMessage(text, sentences);
+            const keyPoints = extractKeyPoints(text, sentences);
+            const structure = analyzeContentStructureDeep(text, sentences);
+            const takeaways = generateTakeaways(text, category, contentType);
+            const relatedTopics = findRelatedTopics(text, keywords);
+            const memoryTips = generateMemoryTips(text, keyPoints);
+            const reviewSchedule = generateReviewSchedule(text, category);
+
+            const categoryNames = { study: '📚 学习', entertainment: '🎬 娱乐', health: '💪 健康' };
+            const categoryColors = { study: '#10b981', entertainment: '#ec4899', health: '#f59e0b' };
+
+            const contentDiv = document.getElementById('summaryContent');
+            contentDiv.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                    <div style="background: var(--surface); padding: 12px; border-radius: 8px; text-align: center;"><div style="font-size: 1.4rem; font-weight: bold; color: var(--primary);">${charCount}</div><div style="font-size: 0.75rem; color: var(--text-secondary);">字数</div></div>
+                    <div style="background: var(--surface); padding: 12px; border-radius: 8px; text-align: center;"><div style="font-size: 1.4rem; font-weight: bold; color: #10b981;">${estimatedReadTime}分钟</div><div style="font-size: 0.75rem; color: var(--text-secondary);">阅读时间</div></div>
+                    <div style="background: var(--surface); padding: 12px; border-radius: 8px; text-align: center;"><div style="font-size: 1.4rem; font-weight: bold; color: #ec4899;">${sentences.length}</div><div style="font-size: 0.75rem; color: var(--text-secondary);">句子数</div></div>
+                    <div style="background: var(--surface); padding: 12px; border-radius: 8px; text-align: center;"><div style="font-size: 1.4rem; font-weight: bold; color: #f59e0b;">${paragraphCount}</div><div style="font-size: 0.75rem; color: var(--text-secondary);">段落数</div></div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: ${categoryColors[category]};"><span style="font-size: 1.2rem;">💡</span> 内容核心要点</h4>
+                    <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(16, 185, 129, 0.1)); padding: 16px; border-radius: 10px; border-left: 4px solid ${categoryColors[category]};">
+                        <p style="line-height: 1.8; font-size: 0.95rem;">${coreMessage}</p>
+                    </div>
+                </div>
+
+                ${keyPoints.length > 0 ? `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;"><span style="font-size: 1.2rem;">📌</span> 关键要点</h4>
+                    <ul style="padding-left: 20px; line-height: 2;">${keyPoints.map(p => `<li style="margin-bottom: 8px;"><strong>${p.title}</strong>：${p.desc}</li>`).join('')}</ul>
+                </div>` : ''}
+
+                ${structure.length > 0 ? `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;"><span style="font-size: 1.2rem;">🏗️</span> 内容结构</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">${structure.map(s => `<span style="padding: 6px 14px; background: var(--surface); border-radius: 20px; font-size: 0.85rem;">${s}</span>`).join('')}</div>
+                </div>` : ''}
+
+                ${contentType.type !== 'general' ? `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;"><span style="font-size: 1.2rem;">${contentType.icon}</span> 内容类型</h4>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="padding: 6px 14px; background: ${contentType.color}20; color: ${contentType.color}; border-radius: 20px; font-size: 0.9rem; font-weight: 500;">${contentType.typeName}</span>
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;">${contentType.description}</span>
+                    </div>
+                </div>` : ''}
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;"><span style="font-size: 1.2rem;">🎯</span> 可执行建议</h4>
+                    <ul style="padding-left: 20px; line-height: 2; color: var(--text-secondary);">${takeaways.map(t => `<li style="margin-bottom: 8px;">${t}</li>`).join('')}</ul>
+                </div>
+
+                ${relatedTopics.length > 0 ? `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;"><span style="font-size: 1.2rem;">🔗</span> 相关主题</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">${relatedTopics.map(t => `<span style="padding: 6px 14px; background: rgba(99, 102, 241, 0.2); border-radius: 20px; font-size: 0.85rem; cursor: pointer;" onclick="addSummaryTag('${t}')">+ ${t}</span>`).join('')}</div>
+                </div>` : ''}
+
+                ${memoryTips.length > 0 ? `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;"><span style="font-size: 1.2rem;">🧠</span> 记忆技巧</h4>
+                    <ul style="padding-left: 20px; line-height: 1.8; color: var(--text-secondary);">${memoryTips.map(t => `<li style="margin-bottom: 6px;">${t}</li>`).join('')}</ul>
+                </div>` : ''}
+
+                <div style="background: var(--surface); padding: 16px; border-radius: 10px; margin-top: 20px;">
+                    <h4 style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;"><span style="font-size: 1.2rem;">📅</span> 复习计划建议</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">${reviewSchedule.map(r => `<div style="flex: 1; min-width: 120px; padding: 12px; background: var(--background); border-radius: 8px; text-align: center;"><div style="font-weight: bold; color: var(--primary);">${r.time}</div><div style="font-size: 0.8rem; color: var(--text-secondary);">${r.action}</div></div>`).join('')}</div>
+                </div>
+            `;
+
+            const tagContainer = document.getElementById('summaryTags');
+            const allTags = [...new Set([...keywords.slice(0, 8), ...relatedTopics.slice(0, 4)])];
+            tagContainer.innerHTML = allTags.slice(0, 12).map(k => `<span class="ai-suggestion" onclick="addSummaryTag('${k}')">+ ${k}</span>`).join('');
+
+            document.getElementById('summaryCategory').innerHTML = `<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;"><span class="tag" style="background: ${categoryColors[category]}; padding: 8px 16px; font-size: 1rem;">${categoryNames[category]}</span><span style="color: var(--text-secondary);">→</span><span class="tag" style="background: var(--surface); padding: 8px 16px;">${contentType.typeName}</span></div>`;
+            document.getElementById('summaryResult').style.display = 'block';
+        }
+
+        function extractCoreMessage(text, sentences) {
+            if (sentences.length === 0) return '无法提取核心信息';
+            const importantPatterns = [/.+?(?:是|为了|要|应该|必须|需要|可以).+/, /.+?(?:方法|技巧|原则|规律|关键|核心).+/, /.+?(?:因为|所以|因此|导致).+/, /.+?(?:结论|观点|看法|认识).+/];
+            for (const pattern of importantPatterns) { const match = text.match(pattern); if (match && match[1].length > 10 && match[1].length < 200) return match[1].trim(); }
+            const firstMeaningful = sentences.find(s => s.length > 20);
+            if (firstMeaningful) return firstMeaningful.trim();
+            return sentences[0].trim().substring(0, 150) + (sentences[0].length > 150 ? '...' : '');
+        }
+
+        function extractKeyPoints(text, sentences) {
+            const points = [];
+            const pointPatterns = [
+                { pattern: /(.+?(?:第一|首先|首要|最重要|关键).+?[,，])/, title: '首要要点' },
+                { pattern: /(.+?(?:其次|第二|再次|还有).+?[,，])/, title: '次要要点' },
+                { pattern: /(.+?(?:原因|理由|依据|原理).+?[,，])/, title: '原因分析' },
+                { pattern: /(.+?(?:结果|结论|效果|作用|影响).+?[,，])/, title: '结果影响' },
+                { pattern: /(.+?(?:步骤|流程|过程|阶段).+?[,，])/, title: '步骤流程' },
+                { pattern: /(.+?(?:优势|优点|好处|价值|意义).+?[,，])/, title: '优势价值' },
+                { pattern: /(.+?(?:建议|方案|对策|措施|方法|技巧).+?[,，])/, title: '解决方案' }
+            ];
+            for (const { pattern, title } of pointPatterns) {
+                const match = text.match(pattern);
+                if (match && match[1].length > 8 && match[1].length < 100) {
+                    const cleanText = match[1].trim();
+                    let isDuplicate = false;
+                    for (const p of points) { if (p.desc.includes(cleanText.substring(0, 20))) { isDuplicate = true; break; } }
+                    if (!isDuplicate && points.length < 5) points.push({ title, desc: cleanText });
+                }
+            }
+            return points;
+        }
+
+        function analyzeContentStructureDeep(text, sentences) {
+            const structures = [];
+            if (/首先/.test(text) || /其次/.test(text) || /第一/.test(text)) structures.push('分述');
+            if (/比如/.test(text) || /例如/.test(text) || /像/.test(text)) structures.push('举例');
+            if (/因为/.test(text) || /所以/.test(text) || /因此/.test(text)) structures.push('因果');
+            if (/但是/.test(text) || /然而/.test(text) || /不过/.test(text)) structures.push('转折');
+            if (/总之/.test(text) || /最后/.test(text) || /综上所述/.test(text)) structures.push('结论');
+            if (/https?:\/\//.test(text)) structures.push('含外部链接');
+            if (/\?/.test(text)) structures.push('含思考问题');
+            return structures.slice(0, 6);
+        }
+
+        function detectContentTypeDetailed(text) {
+            const indicators = [
+                { typeName: '知识讲解', icon: '📖', color: '#10b981', patterns: [/教程/, /讲解/, /原理/, /方法/, /技巧/, /教学/, /课程/], desc: '系统性传授知识或技能' },
+                { typeName: '经验分享', icon: '💬', color: '#8b5cf6', patterns: [/经历/, /故事/, /分享/, /我的/, /曾经/], desc: '个人经历或心得体会' },
+                { typeName: '产品评测', icon: '⭐', color: '#f59e0b', patterns: [/测评/, /评测/, /体验/, /对比/, /推荐/, /种草/], desc: '对产品或服务的主观评价' },
+                { typeName: '干货技巧', icon: '💡', color: '#06b6d4', patterns: [/干货/, /秘诀/, /诀窍/, /技巧/], desc: '实用性强、可直接应用' },
+                { typeName: '娱乐内容', icon: '🎬', color: '#f43f5e', patterns: [/搞笑/, /娱乐/, /综艺/, /追星/, /明星/], desc: '以娱乐消遣为主' },
+                { typeName: '健康养生', icon: '💪', color: '#22c55e', patterns: [/健康/, /养生/, /健身/, /减肥/, /饮食/, /睡眠/], desc: '与身心健康相关' }
+            ];
+            for (const indicator of indicators) { if (indicator.patterns.some(p => p.test(text))) return { type: indicator.typeName, icon: indicator.icon, color: indicator.color, description: indicator.desc }; }
+            return { type: 'general', icon: '📝', color: '#94a3b8', description: '一般性文本内容' };
+        }
+
+        function generateTakeaways(text, category, contentType) {
+            const takeaways = [];
+            const catTakeaways = { study: ['适合收藏到学习笔记本中', '建议添加到「待学习」清单', '可以关联到相关主题的收藏'], entertainment: ['适合收藏到娱乐休闲分类', '可以加入想看/想玩清单', '适合标记为已观看'], health: ['适合收藏到健康生活分类', '可以加入今日/本周计划', '适合设置定期提醒'] };
+            takeaways.push(...catTakeaways[category].slice(0, 3));
+            if (contentType.type === '知识讲解' || contentType.type === '干货技巧') { takeaways.push('⚡ 可立即尝试实践的方法'); takeaways.push('📝 建议写下3个可以行动的点'); }
+            if (/为什么/.test(text) || /原因/.test(text)) takeaways.push('🔍 深入理解背后的原因');
+            if (/如何/.test(text) || /怎么/.test(text)) takeaways.push('🎯 按照步骤开始行动');
+            return takeaways.slice(0, 5);
+        }
+
+        function findRelatedTopics(text, keywords) {
+            const relatedTopics = [];
+            const topicCorrelations = { '编程': ['Python', 'JavaScript', '前端', '后端'], '健身': ['增肌', '减脂', '饮食', '休息'], '学习': ['方法', '效率', '记忆', '专注'], '美食': ['烹饪', '食谱', '食材'], '旅游': ['攻略', '景点', '行程'] };
+            for (const [topic, related] of Object.entries(topicCorrelations)) { if (keywords.some(k => k.includes(topic) || topic.includes(k))) relatedTopics.push(...related.slice(0, 2)); }
+            return [...new Set(relatedTopics)].slice(0, 6);
+        }
+
+        function generateMemoryTips(text, keyPoints) {
+            const tips = [];
+            if (keyPoints.length > 0) tips.push(`用「${keyPoints[0].title}」作为记忆锚点`);
+            if (text.length > 500) tips.push('分段记忆，每次专注一个要点');
+            if (sentences && sentences.length > 3) tips.push('尝试用自己的话复述内容');
+            if (keyPoints.length > 1) tips.push('用「首先-其次-最后」的结构串联要点');
+            tips.push('当天晚上复习一次加深印象');
+            return tips.slice(0, 4);
+        }
+
+        function generateReviewSchedule(text, category) {
+            const baseSchedule = {
+                study: [{ time: '今天', action: '初步理解' }, { time: '明天', action: '整理笔记' }, { time: '3天后', action: '复习巩固' }, { time: '7天后', action: '检验掌握' }],
+                entertainment: [{ time: '随时', action: '想看就看' }, { time: '有空时', action: '再看一遍' }, { time: '收藏', action: '备用消遣' }],
+                health: [{ time: '今天', action: '开始实践' }, { time: '明天', action: '坚持执行' }, { time: '3天后', action: '观察效果' }, { time: '7天后', action: '调整计划' }]
+            };
+            return baseSchedule[category] || baseSchedule.study;
+        }
+
+        function extractKeywordsFromText(text) {
+            const stopWords = ['的', '了', '是', '在', '我', '有', '和', '就', '不', '人', '都', '一', '一个', '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看', '好', '自己', '这', '这个', '那个', '什么', '怎么', '如果', '因为', '所以', '但是'];
+            const words = text.match(/[\u4e00-\u9fa5]{2,}/g) || [];
+            const wordFreq = {};
+            words.forEach(w => { if (!stopWords.includes(w) && w.length >= 2 && w.length <= 6) wordFreq[w] = (wordFreq[w] || 0) + 1; });
+            return Object.entries(wordFreq).sort((a, b) => b[1] - a[1]).slice(0, 15).map(([w]) => w);
+        }
+
+        function determineCategoryFromKeywords(keywords) {
+            const kwList = keywords.join(' ').toLowerCase();
+            let scores = { study: 0, entertainment: 0, health: 0 };
+            for (const [cat, data] of Object.entries(categoryKeywords)) { data.keywords.forEach(kw => { if (kwList.includes(kw.toLowerCase())) scores[cat]++; }); }
+            const max = Math.max(...Object.values(scores));
+            if (max === 0) return 'study';
+            return Object.entries(scores).find(([, v]) => v === max)[0];
+        }
+
+        function addSummaryTag(tag) { const input = document.getElementById('summaryInput'); input.value += (input.value ? ' ' : '') + tag; }
+
+        function createFromSummary() {
+            const notes = document.getElementById('summaryContent').textContent;
+            const category = determineCategoryFromKeywords(extractKeywordsFromText(document.getElementById('summaryInput').value));
+            closeSummaryModal();
+            showAddForm();
+            document.getElementById('formNotes').value = notes;
+            document.getElementById('formCategory').value = category;
+            updateSubcategories();
+        }
+
+        function summarizeSelected() {
+            const select = document.getElementById('summarySelect');
+            const selectedIds = Array.from(select.selectedOptions).map(o => o.value);
+            if (selectedIds.length === 0) { alert('请选择要总结的收藏'); return; }
+            const selected = collections.filter(c => selectedIds.includes(c.id));
+            const allText = selected.map(c => `${c.title} ${c.tags.join(' ')} ${c.notes || ''}`).join(' ');
+            const keywords = extractKeywordsFromText(allText);
+            const category = determineCategoryFromKeywords(keywords);
+            const categoryNames = { study: '📚 学习', entertainment: '🎬 娱乐', health: '💪 健康' };
+            document.getElementById('selectedSummaryContent').innerHTML = `<h4>📊 选中收藏分析</h4><p style="margin: 10px 0;">共选中 <strong>${selected.length}</strong> 个收藏</p><p style="margin: 10px 0;">主要分类：<strong>${categoryNames[category]}</strong></p><p style="margin: 10px 0;">高频标签：${keywords.slice(0, 5).join(', ')}</p><h4 style="margin-top: 15px;">🏷️ 标签统计</h4><div class="ai-suggestions">${keywords.slice(0, 10).map(k => `<span class="ai-suggestion">${k}</span>`).join('')}</div>`;
+            document.getElementById('selectedSummaryResult').style.display = 'block';
+        }
+
+        function getPlatformIcon(platform) { return platform === 'douyin' ? '🎵' : platform === 'douban' ? '🎬' : platform === 'weibo' ? '📱' : '🔗'; }
+        function formatDate(timestamp) { return new Date(timestamp).toLocaleDateString('zh-CN'); }
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        renderCollections();
+        updateStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能学习助手</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        h1 i { color: var(--primary); }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--surface-light); color: var(--text); }
+        .btn-secondary:hover { background: #475569; }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: var(--surface);
+            border: 1px solid var(--surface-light);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover { border-color: var(--primary); color: var(--text); }
+        .tab-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--surface-light);
+            border-radius: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-zone i { font-size: 48px; color: var(--primary); margin-bottom: 16px; }
+        .upload-zone h3 { margin-bottom: 8px; }
+        .upload-zone p { color: var(--text-secondary); }
+
+        .formats { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+        .format-badge {
+            padding: 4px 12px;
+            background: rgba(79, 70, 229, 0.2);
+            border: 1px solid var(--primary);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--primary);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            background: var(--background);
+            border: 1px solid var(--surface-light);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        textarea:focus { outline: none; border-color: var(--primary); }
+
+        .hidden { display: none !important; }
+
+        #message {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 8px;
+        }
+
+        .result-card {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-brain"></i> AI智能学习助手</h1>
+            <button class="btn btn-secondary" id="settings-btn">
+                <i class="fas fa-cog"></i> 设置
+            </button>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="learn">
+                <i class="fas fa-book-open"></i> 学习
+            </button>
+            <button class="tab-btn" data-tab="questions">
+                <i class="fas fa-pencil-alt"></i> 题目分析
+            </button>
+            <button class="tab-btn" data-tab="interactive">
+                <i class="fas fa-gamepad"></i> 交互学习
+            </button>
+        </div>
+
+        <div id="learn-tab" class="tab-content active">
+            <div class="card">
+                <div class="upload-zone" id="upload-zone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>拖拽文件到此处</h3>
+                    <p>或点击选择文件上传</p>
+                    <div class="formats">
+                        <span class="format-badge">PDF</span>
+                        <span class="format-badge">PPTX</span>
+                    </div>
+                    <input type="file" id="file-input" accept=".pdf,.pptx" hidden>
+                </div>
+                <div id="message" class="hidden"></div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 16px;"><i class="fas fa-sticky-note"></i> 快速笔记</h3>
+                <textarea id="quick-notes" placeholder="记录此刻的想法..."></textarea>
+                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                    <button class="btn btn-primary" id="save-note-btn">
+                        <i class="fas fa-save"></i> 保存笔记
+                    </button>
+                    <button class="btn btn-secondary" id="clear-notes-btn">
+                        <i class="fas fa-trash"></i> 清除
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="questions-tab" class="tab-content">
+            <div class="card">
+                <h3 style="margin-bottom: 16px;"><i class="fas fa-pencil-alt"></i> 题目分析</h3>
+                <textarea id="question-input" placeholder="输入题目内容..."></textarea>
+                <button class="btn btn-primary" id="analyze-btn" style="margin-top: 12px;">
+                    <i class="fas fa-magic"></i> AI分析
+                </button>
+                <div id="analysis-result"></div>
+            </div>
+        </div>
+
+        <div id="interactive-tab" class="tab-content">
+            <div class="card">
+                <h3 style="margin-bottom: 16px;"><i class="fas fa-gamepad"></i> 交互学习</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">选择学习模块开始练习</p>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 500px;">
+                    <button class="btn btn-primary" id="start-math-btn">
+                        <i class="fas fa-calculator"></i> 数学
+                    </button>
+                    <button class="btn btn-secondary" id="start-physics-btn">
+                        <i class="fas fa-atom"></i> 物理
+                    </button>
+                    <button class="btn btn-secondary" id="start-chemistry-btn">
+                        <i class="fas fa-flask"></i> 化学
+                    </button>
+                    <button class="btn btn-secondary" id="start-english-btn">
+                        <i class="fas fa-language"></i> 英语
+                    </button>
+                </div>
+                <div id="quiz-area" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('=== AI智能学习助手 加载中 ===');
+
+        let currentTab = 'learn';
+        let currentFile = null;
+        let notes = [];
+
+        function initApp() {
+            console.log('初始化应用...');
+            initTabs();
+            initUpload();
+            initNotes();
+            initQuestions();
+            initInteractive();
+            console.log('=== 初始化完成 ===');
+        }
+
+        function initTabs() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            console.log('找到标签按钮:', tabBtns.length);
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    console.log('切换标签:', tabName);
+
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+
+                    document.getElementById(tabName + '-tab').classList.add('active');
+                    currentTab = tabName;
+                });
+            });
+        }
+
+        function initUpload() {
+            const uploadZone = document.getElementById('upload-zone');
+            const fileInput = document.getElementById('file-input');
+            const message = document.getElementById('message');
+
+            console.log('上传区域元素:', !!uploadZone, !!fileInput);
+
+            uploadZone.addEventListener('click', function() {
+                console.log('点击上传区域');
+                fileInput.click();
+            });
+
+            uploadZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+
+            uploadZone.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                console.log('文件拖放:', e.dataTransfer.files);
+                if (e.dataTransfer.files[0]) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', function(e) {
+                console.log('文件选择:', e.target.files);
+                if (e.target.files[0]) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+            function handleFile(file) {
+                currentFile = file;
+                const ext = file.name.split('.').pop().toLowerCase();
+
+                message.classList.remove('hidden');
+                message.innerHTML = `
+                    <p><i class="fas fa-check-circle" style="color: #10b981;"></i> 文件已加载: ${file.name}</p>
+                    <p style="color: #94a3b8; margin-top: 8px;">类型: ${ext.toUpperCase()} | 大小: ${(file.size / 1024).toFixed(2)} KB</p>
+                `;
+
+                uploadZone.classList.add('hidden');
+            }
+        }
+
+        function initNotes() {
+            const saveBtn = document.getElementById('save-note-btn');
+            const clearBtn = document.getElementById('clear-notes-btn');
+            const notesInput = document.getElementById('quick-notes');
+
+            saveBtn.addEventListener('click', function() {
+                const text = notesInput.value.trim();
+                if (!text) {
+                    alert('请输入笔记内容');
+                    return;
+                }
+                notes.push({ text, time: new Date().toLocaleString() });
+                notesInput.value = '';
+                alert('笔记已保存！');
+                console.log('笔记已保存:', notes);
+            });
+
+            clearBtn.addEventListener('click', function() {
+                notesInput.value = '';
+            });
+        }
+
+        function initQuestions() {
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const questionInput = document.getElementById('question-input');
+            const resultDiv = document.getElementById('analysis-result');
+
+            analyzeBtn.addEventListener('click', function() {
+                const text = questionInput.value.trim();
+                if (!text) {
+                    alert('请输入题目内容');
+                    return;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <p><i class="fas fa-check-circle" style="color: #10b981;"></i> 题目已提交</p>
+                        <p style="color: #94a3b8; margin-top: 8px;">您输入的题目: ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}</p>
+                        <p style="color: #94a3b8; margin-top: 8px;">AI分析功能正在完善中...</p>
+                    </div>
+                `;
+            });
+        }
+
+        function initInteractive() {
+            const mathBtn = document.getElementById('start-math-btn');
+            const physicsBtn = document.getElementById('start-physics-btn');
+            const chemistryBtn = document.getElementById('start-chemistry-btn');
+            const englishBtn = document.getElementById('start-english-btn');
+            const quizArea = document.getElementById('quiz-area');
+
+            mathBtn.addEventListener('click', function() {
+                quizArea.innerHTML = `
+                    <div class="card">
+                        <h4><i class="fas fa-calculator"></i> 数学练习</h4>
+                        <p style="color: #94a3b8; margin: 12px 0;">功能开发中，即将推出...</p>
+                    </div>
+                `;
+            });
+
+            physicsBtn.addEventListener('click', function() {
+                quizArea.innerHTML = `
+                    <div class="card">
+                        <h4><i class="fas fa-atom"></i> 物理练习</h4>
+                        <p style="color: #94a3b8; margin: 12px 0;">功能开发中，即将推出...</p>
+                    </div>
+                `;
+            });
+
+            chemistryBtn.addEventListener('click', function() {
+                quizArea.innerHTML = `
+                    <div class="card">
+                        <h4><i class="fas fa-flask"></i> 化学练习</h4>
+                        <p style="color: #94a3b8; margin: 12px 0;">功能开发中，即将推出...</p>
+                    </div>
+                `;
+            });
+
+            englishBtn.addEventListener('click', function() {
+                quizArea.innerHTML = `
+                    <div class="card">
+                        <h4><i class="fas fa-language"></i> 英语练习</h4>
+                        <p style="color: #94a3b8; margin: 12px 0;">功能开发中，即将推出...</p>
+                    </div>
+                `;
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

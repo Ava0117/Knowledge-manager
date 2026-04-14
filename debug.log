@@ -1,0 +1,13 @@
+[26032:13240:0413/233312.130:WARNING:kernel_switch.cc(93)] [Engine] GetProductDataInfo failed for: input_large_dict_1
+[26032:13240:0413/233312.179:WARNING:t_skinfilemap.cpp(63)] SGRenderLog:CheckUpdate newMem.OpenMem Suc, szNewMem:Local\sgime_skin.v2.filemap.sogouime
+[26032:13240:0413/233312.179:WARNING:t_skinfilemap.cpp(65)] SGRenderLog:CheckUpdate finish: old version:1
+[26032:13240:0413/233312.179:WARNING:t_skinfilemap.cpp(67)] SGRenderLog:CheckUpdate finish: new version:2
+[13296:9064:0413/234234.390:WARNING:kernel_switch.cc(93)] [Engine] GetProductDataInfo failed for: input_large_dict_1
+[13296:9064:0413/234234.429:WARNING:t_skinfilemap.cpp(63)] SGRenderLog:CheckUpdate newMem.OpenMem Suc, szNewMem:Local\sgime_skin.v2.filemap.sogouime
+[13296:9064:0413/234234.430:WARNING:t_skinfilemap.cpp(65)] SGRenderLog:CheckUpdate finish: old version:1
+[13296:9064:0413/234234.430:WARNING:t_skinfilemap.cpp(67)] SGRenderLog:CheckUpdate finish: new version:2
+[33352:1948:0414/143239.816:WARNING:kernel_switch.cc(93)] [Engine] GetProductDataInfo failed for: input_large_dict_1
+[33352:1948:0414/143239.894:WARNING:t_skinfilemap.cpp(56)] SGRenderLog:CheckUpdate newMem.OpenMem failed, szNewMem:Local\sgime_skin.v4.filemap.sogouime err:系统错误2: 系统找不到指定的文件。  
+打开Filemap失败: Local\sgime_skin.v4.filemap.sogouime34857bf30d7
+[33352:1948:0414/143239.894:WARNING:t_skinfilemap.cpp(65)] SGRenderLog:CheckUpdate finish: old version:1
+[33352:1948:0414/143239.894:WARNING:t_skinfilemap.cpp(67)] SGRenderLog:CheckUpdate finish: new version:4

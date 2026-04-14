@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>书签工具 - 一键提取内容</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #f1f5f9;
+            padding: 30px 20px;
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        h1 { font-size: 1.8rem; margin-bottom: 8px; color: #4f46e5; }
+        .subtitle { color: #94a3b8; margin-bottom: 30px; font-size: 0.95rem; }
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        h2 { font-size: 1.1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .bookmarklet {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: grab;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            user-select: none;
+        }
+        .bookmarklet:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+        }
+        .bookmarklet:active { cursor: grabbing; }
+        .code-box {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.75rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            color: #94a3b8;
+            max-height: 120px;
+            overflow-y: auto;
+            word-break: break-all;
+        }
+        .steps { list-style: none; }
+        .steps li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .steps li:last-child { border-bottom: none; }
+        .step-num {
+            background: #4f46e5;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .step-text { line-height: 1.6; font-size: 0.95rem; }
+        .platforms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .platform {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .warning {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #fbbf24;
+        }
+        .warning strong { color: #f59e0b; }
+        a { color: #818cf8; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📤 书签提取工具</h1>
+        <p class="subtitle">一键提取网页内容到知识管理系统</p>
+
+        <div class="card">
+            <h2>🚀 创建书签</h2>
+            <p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem;">直接拖动下面的按钮到浏览器书签栏：</p>
+
+            <a class="bookmarklet" href="javascript:(function(){var%20title=document.title||'无标题';var%20text=window.getSelection?window.getSelection().toString():'';if(!text||text.length%3C10){var%20els=document.querySelectorAll('article,main,.article,.content,#content,.post,._content');els.forEach(function(e){text+=e.innerText||'';});}if(!text||text.length%3C20){text=document.body.innerText||document.documentElement.innerText;}text=text.substring(0,8000).trim();if(!text||text.length%3C20){alert('请先选中要提取的文字内容！');return;}var%20url=window.location.href;var%20data=encodeURIComponent(JSON.stringify({title:title,text:text,url:url}));window.open('http://localhost:3000/extracted?data='+data,'_blank');})();">
+                📤 提取到知识库
+            </a>
+
+            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 15px;">↑ 拖动上方按钮到书签栏</p>
+
+            <h3 style="font-size: 0.95rem; margin-bottom: 10px; color: #94a3b8;">或者复制下面代码创建书签：</h3>
+            <div class="code-box" id="bookmarkCode">javascript:(function(){var title=document.title||'无标题';var text=window.getSelection?window.getSelection().toString():'';if(!text||text.length%3C10){var els=document.querySelectorAll('article,main,.article,.content,#content,.post,._content');els.forEach(function(e){text+=e.innerText||'';});}if(!text||text.length%3C20){text=document.body.innerText||document.documentElement.innerText;}text=text.substring(0,8000).trim();if(!text||text.length%3C20){alert('请先选中要提取的文字内容！');return;}var url=window.location.href;var data=encodeURIComponent(JSON.stringify({title:title,text:text,url:url}));window.open('http://localhost:3000/extracted?data='+data,'_blank');})();</div>
+        </div>
+
+        <div class="card">
+            <h2>📋 使用步骤</h2>
+            <ul class="steps">
+                <li>
+                    <span class="step-num">1</span>
+                    <span class="step-text">在微博/抖音/知乎等页面，<strong style="color:#818cf8">选中要提取的内容</strong>（鼠标拖蓝文字）</span>
+                </li>
+                <li>
+                    <span class="step-num">2</span>
+                    <span class="step-text">点击书签栏的 <strong style="color:#4f46e5">📤 提取到知识库</strong></span>
+                </li>
+                <li>
+                    <span class="step-num">3</span>
+                    <span class="step-text">自动打开新页面显示分析结果，然后点击 <strong style="color:#10b981">打开知识管理系统 →</strong> 收藏</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>✅ 支持的平台</h2>
+            <div class="platforms">
+                <span class="platform">✅ 知乎</span>
+                <span class="platform">✅ 微信公众号</span>
+                <span class="platform">✅ 微博（需登录）</span>
+                <span class="platform">✅ 抖音（需登录）</span>
+                <span class="platform">✅ 豆瓣</span>
+                <span class="platform">✅ B站</span>
+                <span class="platform">✅ 小红书</span>
+                <span class="platform">✅ 任何网页</span>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ 注意：</strong>微博、抖音需要先在浏览器中登录并浏览过内容，书签才能提取到页面文字。
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/">→ 打开知识管理系统</a>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.bookmarklet').addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            alert('请直接拖动这个按钮到您的书签栏！\n\n如果书签栏被隐藏，可以：\n1. 按 Ctrl+D 添加书签\n2. 书签名称填：📤 提取到知识库\n3. 网址粘贴上面的代码');
+        });
+    </script>
+</body>
+</html>

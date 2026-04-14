@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能学习助手 - 简化测试版</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; padding: 40px; }
+        .container { max-width: 800px; margin: 0 auto; text-align: center; }
+        h1 { color: #4f46e5; margin-bottom: 30px; }
+        .upload-zone {
+            border: 3px dashed #4f46e5;
+            border-radius: 16px;
+            padding: 60px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .upload-zone:hover { background: rgba(79, 70, 229, 0.1); transform: scale(1.02); }
+        .upload-zone i { font-size: 64px; color: #4f46e5; margin-bottom: 16px; }
+        .btn { padding: 12px 24px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; margin: 10px; }
+        .btn:hover { background: #4338ca; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .tab-btn { padding: 12px 24px; background: #333; border: none; border-radius: 8px; color: #aaa; cursor: pointer; }
+        .tab-btn.active { background: #4f46e5; color: white; }
+        .tab-content { display: none; padding: 20px; background: #16213e; border-radius: 12px; }
+        .tab-content.active { display: block; }
+        input[type="file"] { display: none; }
+        #message { margin-top: 20px; padding: 16px; background: #0f3460; border-radius: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-brain"></i> AI智能学习助手</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="learn">学习</button>
+            <button class="tab-btn" data-tab="questions">题目</button>
+            <button class="tab-btn" data-tab="interactive">交互</button>
+        </div>
+
+        <div id="learn-tab" class="tab-content active">
+            <div class="upload-zone" id="upload-zone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>点击或拖拽上传文件</h3>
+                <p>支持 PDF、PPTX 格式</p>
+            </div>
+            <input type="file" id="file-input" accept=".pdf,.pptx">
+            <div id="message"></div>
+        </div>
+
+        <div id="questions-tab" class="tab-content">
+            <h3>题目分析</h3>
+            <textarea id="question-text" placeholder="输入题目内容..." style="width: 100%; height: 100px; margin: 10px 0; padding: 10px; border-radius: 8px; background: #1a1a2e; color: #eee; border: 1px solid #333;"></textarea>
+            <button class="btn" id="analyze-btn">AI分析</button>
+            <div id="result"></div>
+        </div>
+
+        <div id="interactive-tab" class="tab-content">
+            <h3>交互学习</h3>
+            <button class="btn" onclick="alert('这个功能还在开发中！')">驾照测验</button>
+            <button class="btn" onclick="alert('这个功能还在开发中！')">数学练习</button>
+        </div>
+    </div>
+
+    <script>
+        console.log('=== JavaScript 加载成功 ===');
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                console.log('Tab clicked:', this.dataset.tab);
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab + '-tab').classList.add('active');
+            });
+        });
+
+        // File upload
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+
+        console.log('Upload zone:', uploadZone);
+        console.log('File input:', fileInput);
+
+        uploadZone.addEventListener('click', () => {
+            console.log('Upload zone clicked');
+            fileInput.click();
+        });
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            console.log('Files dropped:', e.dataTransfer.files);
+            if (e.dataTransfer.files[0]) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            console.log('File input changed:', e.target.files);
+            if (e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            console.log('Handling file:', file.name);
+            const message = document.getElementById('message');
+            const ext = file.name.split('.').pop().toLowerCase();
+            message.innerHTML = `<p><strong>文件已加载:</strong> ${file.name}</p><p><strong>类型:</strong> ${ext.toUpperCase()}</p><p><strong>大小:</strong> ${(file.size / 1024).toFixed(2)} KB</p>`;
+
+            if (ext === 'pdf') {
+                message.innerHTML += '<p style="color: #10b981;">PDF文件加载成功！</p>';
+            } else if (ext === 'pptx') {
+                message.innerHTML += '<p style="color: #10b981;">PPTX文件加载成功！</p>';
+            }
+        }
+
+        // Analyze button
+        document.getElementById('analyze-btn').addEventListener('click', () => {
+            const text = document.getElementById('question-text').value;
+            const result = document.getElementById('result');
+            if (!text.trim()) {
+                result.innerHTML = '<p style="color: #ef4444;">请输入题目内容</p>';
+                return;
+            }
+            result.innerHTML = '<p style="color: #10b981;">AI分析功能正在开发中...</p>';
+        });
+
+        console.log('=== 所有事件监听器已注册 ===');
+    </script>
+</body>
+</html>
